@@ -1,0 +1,98 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                             Harmonic Pattern Helper Engulfing Bar |
+//|                                    Developer: Forex Robot Easy Team - forexroboteasy.com |
+//+------------------------------------------------------------------+
+
+#include <Trade\Trade.mqh>
+
+//+------------------------------------------------------------------+
+//| Global Variables                                                  |
+//+------------------------------------------------------------------+
+input double LotSize = 0.01;                      // Lot size for trades
+input double StopLoss = 50;                       // Stop loss value in pips
+input double TakeProfit = 100;                    // Take profit value in pips
+input double MaxSpread = 5;                       // Maximum allowed spread in pips
+input int Slippage = 3;                           // Maximum allowed slippage in points
+input int MagicNumber = 12345;                     // Unique identifier for trades
+
+CTrade trade;                                     // Trade object for executing trades
+
+//+------------------------------------------------------------------+
+//| Expert Advisor initialization function                            |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+   trade.SetDeviationInPoints(Slippage);
+   trade.SetExpertMagicNumber(MagicNumber);
+   return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Expert Advisor start function                                      |
+//+------------------------------------------------------------------+
+void OnTick()
+{
+   DetectEngulfingBarPattern();
+}
+
+//+------------------------------------------------------------------+
+//| Function to detect engulfing bar pattern                          |
+//+------------------------------------------------------------------+
+void DetectEngulfingBarPattern()
+{
+   int prevBar = 1;                                // Previous bar index
+   int currBar = 0;                                // Current bar index
+
+   double prevBarClose = iClose(_Symbol, PERIOD_CURRENT, prevBar);     // Close price of previous bar
+   double prevBarOpen = iOpen(_Symbol, PERIOD_CURRENT, prevBar);       // Open price of previous bar
+   double currBarOpen = iOpen(_Symbol, PERIOD_CURRENT, currBar);       // Open price of current bar
+   double currBarClose = iClose(_Symbol, PERIOD_CURRENT, currBar);     // Close price of current bar
+
+   // Check if the current bar is green and completely engulfs the previous red bar
+   if(currBarOpen > currBarClose && currBarOpen > prevBarClose && currBarClose < prevBarOpen)
+   {
+      // Call function to detect harmonic patterns
+      DetectHarmonicPatterns();
+   }
+}
+
+//+------------------------------------------------------------------+
+//| Function to detect harmonic patterns                               |
+//+------------------------------------------------------------------+
+void DetectHarmonicPatterns()
+{
+   // TODO: Implement code to detect specific harmonic patterns (Gartley, Bat, Butterfly)
+
+   // Call function to execute trades within the pre-defined price range
+   ExecuteTrades();
+}
+
+//+------------------------------------------------------------------+
+//| Function to execute trades within the pre-defined price range      |
+//+------------------------------------------------------------------+
+void ExecuteTrades()
+{
+   double entryPrice = Ask;                       // Entry price for the trade
+
+   // Calculate stop loss and take profit levels
+   double stopLossLevel = entryPrice - StopLoss * _Point;
+   double takeProfitLevel = entryPrice + TakeProfit * _Point;
+
+   // Check if the spread is within the allowed range
+   if (MarketInfo(_Symbol, MODE_SPREAD) <= MaxSpread)
+   {
+      // Open a buy trade with the specified lot size
+      trade.Buy(LotSize, entryPrice, stopLossLevel, takeProfitLevel);
+   }
+}
+
+//+------------------------------------------------------------------+
+//| Expert Advisor deinitialization function                         |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+   // TODO: Implement code for proper error handling and logging mechanisms
+}
+
+//+------------------------------------------------------------------+
